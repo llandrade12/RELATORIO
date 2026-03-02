@@ -166,8 +166,8 @@ function extractData(rows) {
         
         // [MODIFICADO] Lucro Real = Valor Previsto - Valor Pago (Coluna J - Coluna K)
         const lucroReal = valorPrevisto - valorPago;
-        // [MODIFICADO] Multas = Valor Pago - Valor Previsto (Lógica RelatorioCoelho)
-        const multas = valorPago > valorPrevisto ? valorPago - valorPrevisto : 0;
+        // [MODIFICADO] Multas = (M * H) + (L * 20) + N (Ignorando coluna O)
+        const multas = (colM * colH) + (colL * 20) + colN;
         
         const saldoAberto = valorPrevisto > valorPago ? valorPrevisto - valorPago : 0;
         const status = determinarStatusFinal(row, dataRefPeriodo, hoje, valorPrevisto, valorPago);

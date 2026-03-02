@@ -154,7 +154,11 @@ function extractData(rows) {
         const valorPrevisto = getNum(row[COL.TOTAL_PAGAR]);
         const valorPago = getNum(row[COL.VALOR_PAGO]);
         
-        const lucro = valorPago - valorPrevisto;
+        // [MODIFICADO] Lucro Real = valorPago - valorPrevisto
+        const lucroReal = valorPago - valorPrevisto;
+        // [MODIFICADO] Multas = mesma base do Lucro Real (valorPago - valorPrevisto)
+        const multas = valorPago - valorPrevisto;
+        
         const saldoAberto = valorPrevisto > valorPago ? valorPrevisto - valorPago : 0;
         const status = determinarStatusFinal(row, dataRefPeriodo, hoje, valorPrevisto, valorPago);
 
@@ -166,7 +170,9 @@ function extractData(rows) {
         p.totalEmprestado += valorEmprestado;
         p.totalPrevisto += valorPrevisto;
         p.totalPago += valorPago;
-        p.totalLucro += lucro;
+        p.totalLucro += lucroReal;
+        // [MODIFICADO] Acumulando multas (mesmo valor do lucro real)
+        p.totalMultas += multas;
         p.totalSaldoAberto += saldoAberto;
 
         if (dataRefPeriodo && dataRefPeriodo.getDate() <= CUTOFF_DAY) {
@@ -186,12 +192,23 @@ function extractData(rows) {
 
 function createEmptyPeriod() {
     return {
-        totalEmprestado: 0, totalPrevisto: 0, totalPago: 0, 
-        totalLucro: 0, totalSaldoAberto: 0,
-        emprestadoAte12: 0, previstoAte12: 0, pagoAte12: 0,
+        totalEmprestado: 0, 
+        totalPrevisto: 0, 
+        totalPago: 0, 
+        totalLucro: 0,
+        totalMultas: 0, // [NOVO] Campo para multas
+        totalSaldoAberto: 0,
+        emprestadoAte12: 0, 
+        previstoAte12: 0, 
+        pagoAte12: 0,
         status: { 
-            'ATIVO': 0, 'NÃO EMPRESTAR': 0, 'QUITADO': 0, 
-            'AMARELADO': 0, 'COBRAR': 0, 'CLIENTE EM ACORDO': 0, 'VERDE': 0 
+            'ATIVO': 0, 
+            'NÃO EMPRESTAR': 0, 
+            'QUITADO': 0, 
+            'AMARELADO': 0, 
+            'COBRAR': 0, 
+            'CLIENTE EM ACORDO': 0, 
+            'VERDE': 0 
         }
     };
 }
@@ -210,6 +227,7 @@ function renderConsolidatedReport(container) {
             allPeriods[period].totalPrevisto += d.totalPrevisto;
             allPeriods[period].totalPago += d.totalPago;
             allPeriods[period].totalLucro += d.totalLucro;
+            allPeriods[period].totalMultas += d.totalMultas; // [NOVO]
             allPeriods[period].totalSaldoAberto += d.totalSaldoAberto;
             allPeriods[period].emprestadoAte12 += d.emprestadoAte12;
             allPeriods[period].previstoAte12 += d.previstoAte12;
@@ -225,6 +243,7 @@ function renderConsolidatedReport(container) {
             allPeriods[period].totalPrevisto += d.totalPrevisto;
             allPeriods[period].totalPago += d.totalPago;
             allPeriods[period].totalLucro += d.totalLucro;
+            allPeriods[period].totalMultas += d.totalMultas; // [NOVO]
             allPeriods[period].totalSaldoAberto += d.totalSaldoAberto;
             allPeriods[period].emprestadoAte12 += d.emprestadoAte12;
             allPeriods[period].previstoAte12 += d.previstoAte12;
@@ -238,6 +257,7 @@ function renderConsolidatedReport(container) {
         globalTotals.totalPrevisto += d.totalPrevisto;
         globalTotals.totalPago += d.totalPago;
         globalTotals.totalLucro += d.totalLucro;
+        globalTotals.totalMultas += d.totalMultas; // [NOVO]
         globalTotals.totalSaldoAberto += d.totalSaldoAberto;
         globalTotals.emprestadoAte12 += d.emprestadoAte12;
         globalTotals.previstoAte12 += d.previstoAte12;
@@ -272,6 +292,7 @@ function renderConsolidatedReport(container) {
         filteredTotals.totalPrevisto += d.totalPrevisto;
         filteredTotals.totalPago += d.totalPago;
         filteredTotals.totalLucro += d.totalLucro;
+        filteredTotals.totalMultas += d.totalMultas; // [NOVO]
         filteredTotals.totalSaldoAberto += d.totalSaldoAberto;
         filteredTotals.emprestadoAte12 += d.emprestadoAte12;
         filteredTotals.previstoAte12 += d.previstoAte12;
@@ -330,7 +351,6 @@ function renderConsolidatedReport(container) {
                 <tbody>
                     ${filteredPeriods.map(p => {
                         const d = allPeriods[p];
-                        const lucroReal = d.totalPago - d.totalPrevisto;
                         return `
                             <tr>
                                 <td>${formatPeriodo(p)}</td>
@@ -341,8 +361,8 @@ function renderConsolidatedReport(container) {
                                 <td class="text-right">${formatCurrency(d.totalPrevisto)}</td>
                                 <td class="text-right">${formatCurrency(d.totalPago)}</td>
                                 <td class="text-right">${formatCurrency(d.totalSaldoAberto)}</td>
-                                <td class="text-right">${formatCurrency(d.totalLucro)}</td>
-                                <td class="text-right">${formatCurrency(lucroReal)}</td>
+                                <td class="text-right ${d.totalMultas > 0 ? 'text-warning' : ''}">${formatCurrency(d.totalMultas)}</td>
+                                <td class="text-right ${d.totalLucro > 0 ? 'text-success' : (d.totalLucro < 0 ? 'text-danger' : '')}">${formatCurrency(d.totalLucro)}</td>
                             </tr>
                         `;
                     }).join('')}
@@ -355,8 +375,8 @@ function renderConsolidatedReport(container) {
                         <td class="text-right">${formatCurrency(filteredTotals.totalPrevisto)}</td>
                         <td class="text-right">${formatCurrency(filteredTotals.totalPago)}</td>
                         <td class="text-right">${formatCurrency(filteredTotals.totalSaldoAberto)}</td>
+                        <td class="text-right">${formatCurrency(filteredTotals.totalMultas)}</td>
                         <td class="text-right">${formatCurrency(filteredTotals.totalLucro)}</td>
-                        <td class="text-right">${formatCurrency(filteredTotals.totalPrevisto > filteredTotals.totalPago ? filteredTotals.totalPrevisto - filteredTotals.totalPago : 0)}</td>
                     </tr>
                 </tbody>
             </table>
@@ -400,6 +420,7 @@ function renderStateReport(state, type, container) {
         totals.totalPrevisto += d.totalPrevisto;
         totals.totalPago += d.totalPago;
         totals.totalLucro += d.totalLucro;
+        totals.totalMultas += d.totalMultas; // [NOVO]
         totals.totalSaldoAberto += d.totalSaldoAberto;
         totals.emprestadoAte12 += d.emprestadoAte12;
         totals.previstoAte12 += d.previstoAte12;
@@ -466,7 +487,6 @@ function renderStateReport(state, type, container) {
                 <tbody>
                     ${filteredPeriods.map(p => {
                         const d = data[p];
-                        const lucroReal = d.totalPago - d.totalPrevisto;
                         return `
                             <tr>
                                 <td>${formatPeriodo(p)}</td>
@@ -477,8 +497,8 @@ function renderStateReport(state, type, container) {
                                 <td class="text-right">${formatCurrency(d.totalPrevisto)}</td>
                                 <td class="text-right">${formatCurrency(d.totalPago)}</td>
                                 <td class="text-right">${formatCurrency(d.totalSaldoAberto)}</td>
-                                <td class="text-right">${formatCurrency(d.totalLucro)}</td>
-                                <td class="text-right">${formatCurrency(lucroReal)}</td>
+                                <td class="text-right ${d.totalMultas > 0 ? 'text-warning' : ''}">${formatCurrency(d.totalMultas)}</td>
+                                <td class="text-right ${d.totalLucro > 0 ? 'text-success' : (d.totalLucro < 0 ? 'text-danger' : '')}">${formatCurrency(d.totalLucro)}</td>
                             </tr>
                         `;
                     }).join('')}
@@ -491,8 +511,8 @@ function renderStateReport(state, type, container) {
                         <td class="text-right">${formatCurrency(totals.totalPrevisto)}</td>
                         <td class="text-right">${formatCurrency(totals.totalPago)}</td>
                         <td class="text-right">${formatCurrency(totals.totalSaldoAberto)}</td>
+                        <td class="text-right">${formatCurrency(totals.totalMultas)}</td>
                         <td class="text-right">${formatCurrency(totals.totalLucro)}</td>
-                        <td class="text-right">${formatCurrency(totals.totalPago - totals.totalPrevisto)}
                     </tr>
                 </tbody>
             </table>
@@ -645,4 +665,3 @@ function applyConsolidatedFilter(value) {
     localStorage.setItem('consolidatedFilter', value);
     renderAll();
 }
-

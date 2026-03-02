@@ -164,7 +164,7 @@ function extractData(rows) {
         const colL = getNum(row[COL.COL_L]);
         const colN = getNum(row[COL.COL_N]);
         
-        // [MODIFICADO] Lucro Real = valorPago - valorPrevisto
+        // [MODIFICADO] Lucro Real = valorPago - valorPrevisto (Coluna K - Coluna J)
         const lucroReal = valorPago - valorPrevisto;
         // [MODIFICADO] Multas = (O * H) + (M * H) + (L * 20) + N
         const multas = (colO * colH) + (colM * colH) + (colL * 20) + colN;

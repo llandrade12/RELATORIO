@@ -166,8 +166,8 @@ function extractData(rows) {
         
         // [MODIFICADO] Lucro Real = valorPago - valorPrevisto (Coluna K - Coluna J)
         const lucroReal = valorPago - valorPrevisto;
-        // [MODIFICADO] Multas = (O * H) + (M * H) + (L * 20) + N
-        const multas = (colO * colH) + (colM * colH) + (colL * 20) + colN;
+        // [MODIFICADO] Multas = Valor Pago - Valor Previsto
+        const multas = valorPago - valorPrevisto;
         
         const saldoAberto = valorPrevisto > valorPago ? valorPrevisto - valorPago : 0;
         const status = determinarStatusFinal(row, dataRefPeriodo, hoje, valorPrevisto, valorPago);

@@ -7,8 +7,12 @@ const COL = {
     DATA_INICIAL: 4,
     DATA_FINAL: 5,  
     EMPRESTIMO: 6,  
+    COL_H: 7,
     TOTAL_PAGAR: 9,  
     VALOR_PAGO: 10,  
+    COL_L: 11,
+    COL_M: 12,
+    COL_N: 13,
     DIARIAS: 14,     
     OBSERVACAO: 15,  
     STATUS_CLI: 16,  
@@ -154,10 +158,16 @@ function extractData(rows) {
         const valorPrevisto = getNum(row[COL.TOTAL_PAGAR]);
         const valorPago = getNum(row[COL.VALOR_PAGO]);
         
+        const colO = getNum(row[COL.DIARIAS]);
+        const colH = getNum(row[COL.COL_H]);
+        const colM = getNum(row[COL.COL_M]);
+        const colL = getNum(row[COL.COL_L]);
+        const colN = getNum(row[COL.COL_N]);
+        
         // [MODIFICADO] Lucro Real = valorPago - valorPrevisto
         const lucroReal = valorPago - valorPrevisto;
-        // [MODIFICADO] Multas = mesma base do Lucro Real (valorPago - valorPrevisto)
-        const multas = valorPago - valorPrevisto;
+        // [MODIFICADO] Multas = (O * H) + (M * H) + (L * 20) + N
+        const multas = (colO * colH) + (colM * colH) + (colL * 20) + colN;
         
         const saldoAberto = valorPrevisto > valorPago ? valorPrevisto - valorPago : 0;
         const status = determinarStatusFinal(row, dataRefPeriodo, hoje, valorPrevisto, valorPago);

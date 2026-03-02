@@ -164,10 +164,10 @@ function extractData(rows) {
         const colL = getNum(row[COL.COL_L]);
         const colN = getNum(row[COL.COL_N]);
         
-        // [MODIFICADO] Lucro Real = valorPago - valorPrevisto (Coluna K - Coluna J)
-        const lucroReal = valorPago - valorPrevisto;
-        // [MODIFICADO] Multas = Valor Pago - Valor Previsto
-        const multas = valorPago - valorPrevisto;
+        // [MODIFICADO] Lucro Real = Valor Previsto - Valor Pago (Coluna J - Coluna K)
+        const lucroReal = valorPrevisto - valorPago;
+        // [MODIFICADO] Multas = Valor Pago - Valor Previsto (Lógica RelatorioCoelho)
+        const multas = valorPago > valorPrevisto ? valorPago - valorPrevisto : 0;
         
         const saldoAberto = valorPrevisto > valorPago ? valorPrevisto - valorPago : 0;
         const status = determinarStatusFinal(row, dataRefPeriodo, hoje, valorPrevisto, valorPago);
